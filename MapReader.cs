@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using Project;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Text.RegularExpressions;
 
@@ -61,23 +62,21 @@ public static class MapReader
     /// <param name="bmp">исходная картинка</param>
     /// <param name="colorMap">массив соответсуий цветов</param>
     /// <returns></returns>
-    public static (int, int)[,] GetArrayFromImage(Bitmap bmp, ColorMatch[] colorMap)
+    public static FlowMap GetArrayFromImage(Bitmap bmp, ColorMatch[] colorMap)
     {
-        //создадим 2-мерный массив по размеру картинки в пикселях
-        //(int, int)[,] pixelArray = new (int, int)[bmp.Width, bmp.Height];
-        (int, int)[,] pixelArray = new (int, int)[bmp.Height, bmp.Width];
-
+        var flows = new FlowMap(bmp.Width, bmp.Height);
 
         //Циклом пройдем по картинке и переделаем каждый пискель в элемент массива
         for (int y = 0; y < bmp.Height; y++)
             for (int x = 0; x < bmp.Width; x++)
             {
                 Color pixelColor = bmp.GetPixel(x, y);
-                //pixelArray[x, y] = ColorToTuple(pixelColor, colorMap);
-                pixelArray[y, x] = ColorToTuple(pixelColor, colorMap);
+                var flowTuple = ColorToTuple(pixelColor, colorMap);
+                var yNew = bmp.Height - 1 - y;
+                flows.SetFLow(x, yNew, flowTuple);
             }
 
-        return pixelArray;
+        return flows;
     }
 
     /// <summary>
@@ -114,22 +113,18 @@ public static class MapReader
     /// </summary>
     /// <param name="array">массив течений</param>
     /// <param name="filePath">пусть к файлу</param>
-    public static void WriteArrayToFile((int, int)[,]  array, string filePath) 
+    public static void WriteArrayToFile(FlowMap flows, string filePath) 
     {
-     
         //using используется, чтобы в конце процедуры не заморачиваться с закрытием файла и освобождением оперативной памяти, которая для него выделена
         //Это возможно, если класс объекта реализует интерфейс IDisposablе. Реализация этого интерфейса предполагает, что объект такого класса знает,
         //как себя правильно уничтожить
         using StreamWriter writer = new(filePath);
-        int rows = array.GetLength(1);
-        int cols = array.GetLength(0);
-
-        for (int y = 0; y < rows; y++)
+        for (int y = flows.LenY-1; y >= 0 ; y--)
         {
-            for (int x = 0; x < cols; x++)
+            for (int x = 0; x < flows.LenX; x++)
             {
-                writer.Write($"({array[x, y].Item1}, {array[x, y].Item2})");
-                if (x < cols - 1)
+                writer.Write(flows.GetFlow(x,y));
+                if (x < flows.LenX - 1)
                     writer.Write(Separator);
             }
             writer.WriteLine();

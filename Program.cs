@@ -1,11 +1,8 @@
 ﻿using Project;
-using System.Collections.Generic;
 using LoadFlowMap;
 using Microsoft.Extensions.Configuration;
 using System.Diagnostics;
 using System.Drawing;
-
-
 
 //созадим объект конфигурации
 string configfilePath = Path.Combine(AppContext.BaseDirectory, "appsettings.json");
@@ -20,13 +17,14 @@ trainingMapPath = Path.Combine(workingDir, trainingMapPath);
 if (trainingMapPath == string.Empty)
     throw new Exception("Section TrainingMapPath not found");
 
+Console.WriteLine("Begin read color map");
+
 string[] colorMapString = config.GetSection("ColorMap").Get<string[]>() ?? [];
 ColorMatch[] colorMap = MapReader.GetColorMapFromString(colorMapString);
 foreach (var entry in colorMap)
     Console.WriteLine(entry);
 
-
-Console.WriteLine("Begin read");
+Console.WriteLine("Begin read flow map");
 
 //Таймер считает время выполнения процедуры
 Stopwatch stopwatch = Stopwatch.StartNew();
@@ -35,7 +33,7 @@ Stopwatch stopwatch = Stopwatch.StartNew();
 //Это возможно, если класс объекта реализует интерфейс IDisposablе. Реализация этого интерфейса предполагает, что объект такого класса знает,
 //как себя правильно уничтожить
 using Bitmap bmp = new(trainingMapPath);
-var flows = MapReader.GetArrayFromImage(bmp, colorMap);
+var flowMap = MapReader.GetArrayFromImage(bmp, colorMap);
 
 stopwatch.Stop();
 Console.WriteLine($"Execution Time: {stopwatch.ElapsedMilliseconds} ms");
@@ -46,39 +44,34 @@ outputFilePath = Path.Combine(workingDir, outputFilePath);
 if (outputFilePath != string.Empty)
 {
     Console.WriteLine("Write to file");
-    MapReader.WriteArrayToFile(flows, outputFilePath);
+    MapReader.WriteArrayToFile(flowMap, outputFilePath);
 }
 
-Console.WriteLine("End read");
+//Зададим начальную и конечную координаты
+flowMap.StartPoint = new Point(1400, 10);
+flowMap.EndPoint = new Point(700, flowMap.LenX - 50);
+Console.WriteLine($"StartPoint: {flowMap.GetFlow(flowMap.StartPoint)}");
+Console.WriteLine($"EndPoint: {flowMap.GetFlow(flowMap.EndPoint)}");
+//flows[50, 700] = (10, 10);
+//(int, int) _start_position = (2400, 1400);
+//Console.WriteLine(testFlowMap[_start_position.Item1, _start_position.Item2]);
+
+Console.WriteLine("End read flow map");
+
+//тестовая карта течений
+var testFlowMap = TestFlowMap.Get();
+MapReader.WriteArrayToFile(testFlowMap, outputFilePath);
 
 
-flows[50, 700] = (10, 10);
+//Инициализация обучения
 
-(int, int)[,] _flows1 = new (int, int)[15, 7] { { (-1, -1), (0 , 90), (0 , 90), (0 , 90), (1 , 90), (2 , 90), (10, 10) },
-                                                { (-1, -1), (0 , 90), (0 , 90), (0 , 90), (1 , 90), (2 , 90), (1 , 90) },
-                                                { (-1, -1), (0 , 90), (0 , 90), (0 , 90), (1 , 90), (2 , 90), (1 , 90) },
-                                                { (-1, -1), (0 , 90), (0 , 90), (0 , 90), (1 , 90), (-1, -1), (1 , 90) },
-                                                { (-1, -1), (0 , 90), (0 , 90), (0 , 90), (1 , 90), (2 , 90), (1 , 90) },
-                                                { (-1, -1), (0 , 90), (0 , 90), (0 , 90), (1 , 90), (2 , 90), (1 , 90) },
-                                                { (-1, -1), (0 , 90), (0 , 90), (0 , 90), (1 , 90), (2 , 90), (1 , 90) },
-                                                { (-1, -1), (0 , 90), (0 , 90), (0 , 90), (1 , 90), (2 , 45), (1 , 90) },
-                                                { (-1, -1), (0 , 90), (0 , 90), (0 , 90), (1 , 90), (2, 315), (1 , 90) },
-                                                { (-1, -1), (0 , 90), (0 , 90), (0 , 90), (1 , 90), (2 , 90), (1 , 90) },
-                                                { (-1, -1), (0 , 90), (0 , 90), (0 , 90), (1 , 90), (2 , 90), (1 , 90) },
-                                                { (-1, -1), (0 , 90), (0 , 90), (0 , 90), (1 , 45), (2 , 90), (1, 135) },
-                                                { (-1, -1), (0 , 90), (0 , 90), (0 , 90), (1 , 315),(2 , 90), (1, 215) },
-                                                { (-1, -1), (0 , 90), (0 , 90), (0 , 90), (1 , 90), (2 , 90), (1 , 90) },
-                                                { (-1, -1), (0 , 90), (0 , 90), (0 , 90), (1 , 90), (2 , 90), (1 , 90) } };
+//создадим переменную среды
+var env = new Enviorment(testFlowMap, _start_position);
 
-
-(int, int) _start_position = (2400, 1400);
-
-Console.WriteLine(flows[_start_position.Item1, _start_position.Item2]);
-
-var env = new Enviorment(flows, _start_position);
-
+//Набор действий
 (int, int)[] actions = [(5, 0), (5, 45), (5, 90), (5, 135), (5, 180), (5, 225), (5, 270), (5, 315)];
 
+//созадим переменную агента
 var model = new Agent(actions, 0.05, 1);
 
 var state = env.CoordsToNewState(_start_position);
@@ -102,7 +95,7 @@ for (int i = 0; i < 100_000_000; i++)
 
     if (new_state.Item3 || new_state.Item4)
     {
-        env = new Enviorment(flows, _start_position);
+        env = new Enviorment(testFlowMap, _start_position);
         state = env.CoordsToNewState(_start_position);
     }
 }
@@ -139,7 +132,7 @@ Console.WriteLine();
 Console.WriteLine();
 
 
-env = new Enviorment(flows, _start_position);
+env = new Enviorment(testFlowMap, _start_position);
 state = env.CoordsToNewState(_start_position);
 var action1 = model.Action(state, 0);
 var new_state1 = env.Step(action1);

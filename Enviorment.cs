@@ -1,8 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Drawing;
-using System.Runtime.CompilerServices;
-
-namespace Project;
+﻿namespace Project;
 
 public class Enviorment
 {   
@@ -65,7 +61,7 @@ public class Enviorment
 
 
         // Проверяем, не столкнуась ли лодка с островом во время перемещения
-        if (colission_check(_current_position, new_position))
+        if (ColissionСheck(_current_position, new_position))
         {
             _current_position = _start_position;
             // Если столкнулась, возвращаем её в начальное положение
@@ -110,7 +106,7 @@ public class Enviorment
         return (rSum, degreeSum);
     }
 
-    private bool colission_check((int, int) current_position, (int, int) new_position)
+    private bool ColissionСheck((int, int) current_position, (int, int) new_position)
     {
         var cells = new List<(int, int)>();
 

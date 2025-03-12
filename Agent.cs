@@ -17,16 +17,10 @@ public class Agent
         _Q_values = [];
         _actions = actions;
     }
-     //public void Update(Dictionary<(int, int, (int, int)[,]), double[]> Q_target, (int, int, (int, int)[,]) state, (int, int) action, (int, int, (int, int)[,]) new_state, int reward, bool terminated)
+     
      public void Update(Dictionary<int, double[]> Q_target, (int, int, (int, int)[,]) state, (int, int) action, (int, int, (int, int)[,]) new_state, int reward, bool terminated)
     
         {
-        // Обновление словаря Q
-        //try
-        //{
-        //    var t = _Q[state];
-        //}
-        //catch (KeyNotFoundException)
         var hash_state = GetHash(state);
          if (!_Q_values.ContainsKey(hash_state))
         {
@@ -38,11 +32,6 @@ public class Agent
             _Q_values.Add(hash_state, t);
         }
 
-        //try
-        //{
-        //    var t = _Q[new_state];
-        //}
-        //catch (KeyNotFoundException)
         var hash_new_state = GetHash(new_state);
         if (!_Q_values.ContainsKey(hash_new_state))
         {
@@ -72,7 +61,6 @@ public class Agent
         _Q_values[hash_state][ind] += _alpha * TD;
     }
 
-
     public (int, int) Action((int, int, (int, int)[,]) state, double soft = 0.1)
     {
         // Возвращает действие агента в зависимости от текущего состояния
@@ -101,18 +89,21 @@ public class Agent
         return _actions[Array.IndexOf(_Q_values[hash_state], _Q_values[hash_state].Max())];
     }
 
-
-
-    private int GetHash((int, int, (int, int)[,]) val)
+    /// <summary>
+    ///     Метод считает hash из состояния среды
+    /// </summary>
+    /// <param name="val"></param>
+    /// <returns></returns>
+    private static int GetHash((int, int, (int, int)[,]) val)
     {
-        var h = HashCode.Combine(val.Item1);
-        h = HashCode.Combine(val.Item2,h);
+        var hash = HashCode.Combine(val.Item1);
+        hash = HashCode.Combine(val.Item2,hash);
         for (int i = 0; i < val.Item3.GetLength(0); i++)
             for (int j = 0; j < val.Item3.GetLength(1); j++)
             {
-                h = HashCode.Combine(val.Item3[i, j].Item1, h);
-                h = HashCode.Combine(val.Item3[i, j].Item2, h);
+                hash = HashCode.Combine(val.Item3[i, j].Item1, hash);
+                hash = HashCode.Combine(val.Item3[i, j].Item2, hash);
             }
-        return h;
+        return hash;
     }
 }
