@@ -43,4 +43,12 @@ public static class VectorHelper
 
         return newPosition;
     }
+
+    public static int GetIndex<T>(T[] array, T action) where T : IEquatable<T>
+    {
+        for (int i = 0; i < array.Length; i++)
+            if (action?.Equals(array[i]) ?? false)
+                return i;
+        return -1;
+    }
 }

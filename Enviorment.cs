@@ -17,16 +17,19 @@ public class Enviorment
 
     private Point _endPosition;
 
+    private readonly int _obstacleLen = 5;
+
 
     // Создание экземпляра класса; принимает на вход массив течений и начальное положение, обнуляет кол-во шагов
     public Enviorment( FlowMap flows )
     {
         _flowMap = flows;
-        _step_counter = 0;
-        _reward = -1;
         _currentPosition = flows.StartPoint;
         _startPosition = flows.StartPoint;
         _endPosition = flows.EndPoint;
+
+        _step_counter = 0;
+        _reward = -1;
     }
 
     
@@ -72,7 +75,7 @@ public class Enviorment
 
 
         // Проверяем, является ли текущее состояние терминальным
-        bool terminated = (_flowMap.GetFlow(newPosition.X, newPosition.Y) == new StrengthVector(10, 10));
+        bool terminated = (_flowMap.GetFlow(newPosition.X, newPosition.Y).Strength == new StrengthVector(10, 10).Strength  && _flowMap.GetFlow(newPosition.X, newPosition.Y).Angle == new StrengthVector(10, 10).Angle);
 
         _currentPosition = newPosition;
 
@@ -154,7 +157,7 @@ public class Enviorment
 
         for (int i = 0; i < cells.Count(); i++)
         {
-            if (_flowMap.GetFlow( cells[i].X, cells[i].Y ) == new StrengthVector(-1, -1))
+            if (_flowMap.GetFlow( cells[i].X, cells[i].Y ).Strength == new StrengthVector(-1, -1).Strength)
             {
                 collision = true;
                 return collision;
@@ -168,19 +171,21 @@ public class Enviorment
     public State CoordsToNewState(Point coords)
     {
         // Заполнение данных о территории вокруг агента
-        Obstacles around = new(3);
+        Obstacles around = new(_obstacleLen);
 
-        for (int x = -1 * ((around.Len - 1) / 2); x <= ((around.Len - 1) / 2); x++)
+        int halfLength = ((around.Len - 1) / 2);
+
+        for (int x = -1 * halfLength; x <= halfLength; x++)
         {
-            for (int y = -1 * ((around.Len - 1) / 2); y <= ((around.Len - 1) / 2); y++)
+            for (int y = -1 * halfLength; y <= halfLength; y++)
             {
                 if (IndexOutOfBounds( new Point(coords.X + x, coords.Y + y) )) {
-                    around.SetValue( new Point(x + 1, y + 1), ObstaclesEnum.Obstacle);
+                    around.SetValue( new Point(x + halfLength, y + halfLength), ObstaclesEnum.Obstacle);
                 }
                 else
                 {
                     if (_flowMap.GetFlow(coords.X + x, coords.Y + y) == new StrengthVector(-1, -1))
-                        around.SetValue(new Point(x + 1, y + 1), ObstaclesEnum.Obstacle);
+                        around.SetValue(new Point(x + halfLength, y + halfLength), ObstaclesEnum.Obstacle);
                 }
             }
         }
@@ -188,7 +193,7 @@ public class Enviorment
 
         // Расстояние и угол до цели
         double distance_x = _endPosition.X - coords.X;
-        double distance_y = _endPosition.Y + coords.Y;
+        double distance_y = _endPosition.Y - coords.Y;
 
         int distance = (int)Math.Round(Math.Sqrt(distance_x * distance_x + distance_y * distance_y));
         double degree1 = Math.Acos(distance_x / distance) * 180 / Math.PI ;

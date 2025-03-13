@@ -1,4 +1,6 @@
-﻿namespace Project;
+﻿using System;
+
+namespace Project;
 
 public class Agent
 {
@@ -56,7 +58,7 @@ public class Agent
             V_value = 0;
         }
 
-        int ind = Array.IndexOf(_actions, action);
+        int ind = VectorHelper.GetIndex(_actions, action);
         double TD = reward + _gamma * (1 - Convert.ToInt64(terminated)) * V_value - _Q_values[hash_state][ind];
         _Q_values[hash_state][ind] += _alpha * TD;
     }

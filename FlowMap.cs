@@ -1,11 +1,12 @@
-﻿using System.Drawing;
+﻿using System;
+using System.Drawing;
 
 namespace Project;
 
 /// <summary>
 ///     Класс описывает течение в точке карты
 /// </summary>
-public class StrengthVector
+public class StrengthVector: IEquatable<StrengthVector>
 {
     //TODO Задавать направление не целым числом, а перечислением 
 
@@ -19,9 +20,17 @@ public class StrengthVector
 
     public int Angle { get; }
 
+
     public override string ToString()
     {
         return $"({Strength}, {Angle})";
+    }
+    public bool Equals(StrengthVector? other)
+    {
+        if (other is null)
+            return false;
+
+        return Strength == other.Strength && Angle == other.Angle;
     }
 }
 
@@ -42,7 +51,7 @@ public class FlowMap
     }
 
     public FlowMap(int lenX, int lenY) { 
-        _flows = new StrengthVector[lenY, lenY]; 
+        _flows = new StrengthVector[lenX, lenY]; 
     }
 
     /// <summary>
@@ -125,7 +134,7 @@ public static class TestFlowMap
         flows.SetFLow(5, 11, -1, -1);
 
         flows.StartPoint = new Point(2, 0); 
-        flows.EndPoint = new Point(flows.LenX, flows.LenY);
+        flows.EndPoint = new Point(flows.LenX - 1, flows.LenY - 1);
 
         return flows;
 

@@ -50,14 +50,6 @@ public class Obstacles
     public Obstacles(int size)
     {
         _obstacles = new ObstaclesEnum[size, size];
-
-        for (int i = 0; i < size; i++)
-        {
-            for (int j = 0; j < size; j++)
-            {
-                _obstacles[i, j] = ObstaclesEnum.Free;
-            }
-        }
     }
 
     public void SetValue( Point point, ObstaclesEnum value)
@@ -72,5 +64,5 @@ public class Obstacles
 
     public ObstaclesEnum GetValue(int x, int y) => GetValue( new Point( x, y ) );
 
-    public int Len => _obstacles.Length;
+    public int Len => _obstacles.GetLength(0);
 }

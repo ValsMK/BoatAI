@@ -34,6 +34,8 @@ Stopwatch stopwatch = Stopwatch.StartNew();
 //как себя правильно уничтожить
 using Bitmap bmp = new(trainingMapPath);
 var flowMap = MapReader.GetArrayFromImage(bmp, colorMap);
+//тестовая карта течений
+//flowMap = TestFlowMap.Get();
 
 stopwatch.Stop();
 Console.WriteLine($"Execution Time: {stopwatch.ElapsedMilliseconds} ms");
@@ -49,16 +51,12 @@ if (outputFilePath != string.Empty)
 
 //Зададим начальную и конечную координаты
 flowMap.StartPoint = new Point(1400, 10);
-flowMap.EndPoint = new Point(700, flowMap.LenX - 50);
+//flowMap.EndPoint = new Point(700, flowMap.LenX - 50);
+flowMap.EndPoint = new Point(1375, 40);
 Console.WriteLine($"StartPoint: {flowMap.GetFlow(flowMap.StartPoint)}");
 Console.WriteLine($"EndPoint: {flowMap.GetFlow(flowMap.EndPoint)}");
 
 Console.WriteLine("End read flow map");
-
-//тестовая карта течений
-//var testFlowMap = TestFlowMap.Get();
-//MapReader.WriteArrayToFile(testFlowMap, outputFilePath);
-
 
 
 
@@ -77,7 +75,7 @@ var state = env.CoordsToNewState(flowMap.StartPoint);
 
 int count_steps = 0;
 
-for (int i = 0; i < 100_000_000; i++)
+for (long i = 0; i < 100_000_00; i++)
 {
     var action = agent.Action(state);
 
@@ -135,12 +133,11 @@ env = new Enviorment(flowMap);
 state = env.CoordsToNewState(flowMap.StartPoint);
 var action1 = agent.Action(state, 0);
 var new_state1 = env.Step(action1);
-agent.Update(agent._Q_values, state, action1, new_state1.Item1, new_state1.Item2, new_state1.Item4);
 state = new_state1.Item1;
 int count = 1;
 while (!new_state1.Item3 && !new_state1.Item4)
 {
-    Console.WriteLine(action1);
+    Console.WriteLine($"{new_state1.Item1.DistanceToEndPosition}  :  {action1}");
     action1 = agent.Action(new_state1.Item1, 0);
     new_state1 = env.Step(action1);
     count += 1;
