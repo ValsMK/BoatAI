@@ -52,39 +52,38 @@ flowMap.StartPoint = new Point(1400, 10);
 flowMap.EndPoint = new Point(700, flowMap.LenX - 50);
 Console.WriteLine($"StartPoint: {flowMap.GetFlow(flowMap.StartPoint)}");
 Console.WriteLine($"EndPoint: {flowMap.GetFlow(flowMap.EndPoint)}");
-//flows[50, 700] = (10, 10);
-//(int, int) _start_position = (2400, 1400);
-//Console.WriteLine(testFlowMap[_start_position.Item1, _start_position.Item2]);
 
 Console.WriteLine("End read flow map");
 
 //тестовая карта течений
-var testFlowMap = TestFlowMap.Get();
-MapReader.WriteArrayToFile(testFlowMap, outputFilePath);
+//var testFlowMap = TestFlowMap.Get();
+//MapReader.WriteArrayToFile(testFlowMap, outputFilePath);
+
+
 
 
 //Инициализация обучения
 
 //создадим переменную среды
-var env = new Enviorment(testFlowMap, _start_position);
+var env = new Enviorment(flowMap);
 
 //Набор действий
-(int, int)[] actions = [(5, 0), (5, 45), (5, 90), (5, 135), (5, 180), (5, 225), (5, 270), (5, 315)];
+StrengthVector[] actions = [ new(5, 0), new(5, 45), new(5, 90), new(5, 135), new(5, 180), new(5, 225), new(5, 270), new(5, 315)];
 
 //созадим переменную агента
-var model = new Agent(actions, 0.05, 1);
+var agent = new Agent(actions, 0.05, 1);
 
-var state = env.CoordsToNewState(_start_position);
+var state = env.CoordsToNewState(flowMap.StartPoint);
 
 int count_steps = 0;
 
 for (int i = 0; i < 100_000_000; i++)
 {
-    var action = model.Action(state);
+    var action = agent.Action(state);
 
     var new_state = env.Step(action);
 
-    model.Update(model._Q_values, state, action, new_state.Item1, new_state.Item2, new_state.Item4);
+    agent.Update(agent._Q_values, state, action, new_state.Item1, new_state.Item2, new_state.Item4);
     //model.Update(model._Q, state, action, new_state.Item1, new_state.Item2, new_state.Item4);
 
     state = new_state.Item1;
@@ -95,15 +94,15 @@ for (int i = 0; i < 100_000_000; i++)
 
     if (new_state.Item3 || new_state.Item4)
     {
-        env = new Enviorment(testFlowMap, _start_position);
-        state = env.CoordsToNewState(_start_position);
+        env = new Enviorment(flowMap);
+        state = env.CoordsToNewState(flowMap.StartPoint);
     }
 }
 
 
 //var dict = model._Q.OrderBy(pair => (pair.Key.Item1, pair.Key.Item2));
-var dict_states = model._Q_states;
-var dict_values = model._Q_values;
+var dict_states = agent._Q_states;
+var dict_values = agent._Q_values;
 foreach (var pair in dict_states)
 {
     //Console.WriteLine($"{pair.Key.Item1}, {pair.Key.Item2}, {Format2DArray(pair.Key.Item3)}  :  {string.Join(", ", pair.Value)}");
@@ -132,17 +131,17 @@ Console.WriteLine();
 Console.WriteLine();
 
 
-env = new Enviorment(testFlowMap, _start_position);
-state = env.CoordsToNewState(_start_position);
-var action1 = model.Action(state, 0);
+env = new Enviorment(flowMap);
+state = env.CoordsToNewState(flowMap.StartPoint);
+var action1 = agent.Action(state, 0);
 var new_state1 = env.Step(action1);
-model.Update(model._Q_values, state, action1, new_state1.Item1, new_state1.Item2, new_state1.Item4);
+agent.Update(agent._Q_values, state, action1, new_state1.Item1, new_state1.Item2, new_state1.Item4);
 state = new_state1.Item1;
 int count = 1;
 while (!new_state1.Item3 && !new_state1.Item4)
 {
     Console.WriteLine(action1);
-    action1 = model.Action(new_state1.Item1, 0);
+    action1 = agent.Action(new_state1.Item1, 0);
     new_state1 = env.Step(action1);
     count += 1;
 }

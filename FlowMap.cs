@@ -5,11 +5,11 @@ namespace Project;
 /// <summary>
 ///     Класс описывает течение в точке карты
 /// </summary>
-public class Flow
+public class StrengthVector
 {
     //TODO Задавать направление не целым числом, а перечислением 
 
-    public Flow(int strength, int angle)
+    public StrengthVector(int strength, int angle)
     {
         Strength = strength;
         Angle = angle;
@@ -33,16 +33,16 @@ public class Flow
 public class FlowMap
 {
     private Point _endPoint;
-    private readonly Flow[,] _flows;
+    private readonly StrengthVector[,] _flows;
 
     private void SetEndPoint(Point point)
     {
         _endPoint = point;
-        _flows[point.X, point.Y] = new Flow(10, 10);
+        _flows[point.X, point.Y] = new StrengthVector(10, 10);
     }
 
     public FlowMap(int lenX, int lenY) { 
-        _flows = new Flow[lenY, lenY]; 
+        _flows = new StrengthVector[lenY, lenY]; 
     }
 
     /// <summary>
@@ -69,30 +69,30 @@ public class FlowMap
     /// <summary>
     ///     Течение в точке (x,y)
     /// </summary>
-    public Flow GetFlow(int x, int y) => _flows[x,y];
+    public StrengthVector GetFlow(int x, int y) => _flows[x,y];
 
     /// <summary>
     ///     Течение в точке (x,y)
     /// </summary>
-    public Flow GetFlow(Point point) => _flows[point.X, point.Н];
+    public StrengthVector GetFlow(Point point) => _flows[point.X, point.Y];
 
     /// <summary>
-    ///     Метод зажает течение в точке (x, y)
+    ///     Метод задает течение в точке (x, y)
     /// </summary>
     /// <param name="strength">Сила течения</param>
     /// <param name="angle">Направление течения</param>
     public void SetFLow(int x, int y, int strength, int angle) 
     {
-        _flows[x, y] = new Flow(strength, angle);
+        _flows[x, y] = new StrengthVector(strength, angle);
     }
 
     /// <summary>
-    ///     Метод зажает течение в точке (x, y)
+    ///     Метод задает течение в точке (x, y)
     /// </summary>
     /// <param name="flowTuple">Пара (сила, направление)</param>
     public void SetFLow(int x, int y, (int,int) flowTuple)
     {
-        _flows[x, y] = new Flow(flowTuple.Item1, flowTuple.Item2);
+        _flows[x, y] = new StrengthVector(flowTuple.Item1, flowTuple.Item2);
     }
 }
 
@@ -109,10 +109,22 @@ public static class TestFlowMap
         for (var y = 0; y < flows.LenY; y++)
         {
             flows.SetFLow(0, y, -1, -1);
-            flows.SetFLow(flows.LenX-1, y, -1, -1);
         }
 
-        flows.StartPoint = new Point(5, 0); 
+        for (var y = 0; y < flows.LenY; y++)
+        {
+            flows.SetFLow(4, y, 1, 90);
+            flows.SetFLow(6, y, 1, 90);
+        }
+
+        for (var y = 0; y < flows.LenY; y++)
+        {
+            flows.SetFLow(5, y, 2, 90);
+        }
+
+        flows.SetFLow(5, 11, -1, -1);
+
+        flows.StartPoint = new Point(2, 0); 
         flows.EndPoint = new Point(flows.LenX, flows.LenY);
 
         return flows;

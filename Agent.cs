@@ -4,12 +4,12 @@ public class Agent
 {
     private double _alpha;
     private double _gamma;
-    private (int, int)[] _actions;
+    private StrengthVector[] _actions;
 
     // Q-словарь: (расстояние до цели, угол до цели, [течение под ним и клетки вокруг него])
-    public Dictionary<int, (int, int, (int, int)[,])> _Q_states;
+    public Dictionary<int, State> _Q_states;
     public Dictionary<int, double[]> _Q_values;
-    public Agent((int, int)[] actions, double alpha, double gamma)
+    public Agent(StrengthVector[] actions, double alpha, double gamma)
     {
         _alpha = alpha;
         _gamma = gamma;
@@ -18,10 +18,10 @@ public class Agent
         _actions = actions;
     }
      
-     public void Update(Dictionary<int, double[]> Q_target, (int, int, (int, int)[,]) state, (int, int) action, (int, int, (int, int)[,]) new_state, int reward, bool terminated)
+     public void Update(Dictionary<int, double[]> Q_target, State state, StrengthVector action, State new_state, int reward, bool terminated)
     
         {
-        var hash_state = GetHash(state);
+        var hash_state = state.Hash;
          if (!_Q_values.ContainsKey(hash_state))
         {
             double[] t = new double[_actions.Length];
@@ -32,7 +32,7 @@ public class Agent
             _Q_values.Add(hash_state, t);
         }
 
-        var hash_new_state = GetHash(new_state);
+        var hash_new_state = new_state.Hash;
         if (!_Q_values.ContainsKey(hash_new_state))
         {
             double[] t = new double[_actions.Length];
@@ -61,7 +61,7 @@ public class Agent
         _Q_values[hash_state][ind] += _alpha * TD;
     }
 
-    public (int, int) Action((int, int, (int, int)[,]) state, double soft = 0.1)
+    public StrengthVector Action(State state, double soft = 0.1)
     {
         // Возвращает действие агента в зависимости от текущего состояния
 
@@ -73,7 +73,7 @@ public class Agent
         }
 
 
-        var hash_state = GetHash(state);
+        var hash_state = state.Hash;
         if (!_Q_values.ContainsKey(hash_state))
         {
             double[] t = new double[_actions.Length];
@@ -89,21 +89,5 @@ public class Agent
         return _actions[Array.IndexOf(_Q_values[hash_state], _Q_values[hash_state].Max())];
     }
 
-    /// <summary>
-    ///     Метод считает hash из состояния среды
-    /// </summary>
-    /// <param name="val"></param>
-    /// <returns></returns>
-    private static int GetHash((int, int, (int, int)[,]) val)
-    {
-        var hash = HashCode.Combine(val.Item1);
-        hash = HashCode.Combine(val.Item2,hash);
-        for (int i = 0; i < val.Item3.GetLength(0); i++)
-            for (int j = 0; j < val.Item3.GetLength(1); j++)
-            {
-                hash = HashCode.Combine(val.Item3[i, j].Item1, hash);
-                hash = HashCode.Combine(val.Item3[i, j].Item2, hash);
-            }
-        return hash;
-    }
+   
 }
