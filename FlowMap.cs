@@ -6,7 +6,7 @@ namespace Project;
 /// <summary>
 ///     Класс описывает течение в точке карты
 /// </summary>
-public class StrengthVector: IEquatable<StrengthVector>
+public class StrengthVector : IEquatable<StrengthVector>
 {
     //TODO Задавать направление не целым числом, а перечислением 
 
@@ -132,6 +132,12 @@ public static class TestFlowMap
         }
 
         flows.SetFLow(5, 11, -1, -1);
+        flows.SetFLow(4, 2, 1, 315);
+        flows.SetFLow(4, 3, 1, 45);
+        flows.SetFLow(6, 2, 1, 215);
+        flows.SetFLow(6, 3, 1, 315);
+        flows.SetFLow(5, 6, 2, 315);
+        flows.SetFLow(5, 7, 2, 45);
 
         flows.StartPoint = new Point(2, 0); 
         flows.EndPoint = new Point(flows.LenX - 1, flows.LenY - 1);
@@ -139,7 +145,7 @@ public static class TestFlowMap
         return flows;
 
         //Должна быть такая карта
-        //{ { (-1, -1), (0 , 90), (0 , 90), (0 , 90), (1 , 90), (2 , 90), (10, 10) },
+        //{{(-1, -1), (0 , 90), (0 , 90), (0 , 90), (1 , 90), (2 , 90), (10, 10) },
         //{ (-1, -1), (0 , 90), (0 , 90), (0 , 90), (1 , 90), (2 , 90), (1 , 90) },
         //{ (-1, -1), (0 , 90), (0 , 90), (0 , 90), (1 , 90), (2 , 90), (1 , 90) },
         //{ (-1, -1), (0 , 90), (0 , 90), (0 , 90), (1 , 90), (-1, -1), (1 , 90) },

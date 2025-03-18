@@ -1,23 +1,44 @@
-﻿using System;
+﻿using Microsoft.Extensions.Configuration;
+using System;
 
 namespace Project;
 
 public class Agent
 {
-    private double _alpha;
-    private double _gamma;
+    private readonly double _alpha;
+    private readonly double _gamma;
     private StrengthVector[] _actions;
 
-    // Q-словарь: (расстояние до цели, угол до цели, [течение под ним и клетки вокруг него])
+    private readonly double _startRandom;
+    private readonly double _deltaRandom;
+    private readonly int _stepRandomChange;
+    private int _stepCounter;
+    private double _currentRandom;
+
+    private readonly string configfilePath = Path.Combine(AppContext.BaseDirectory, "appsettings.json");
+    private IConfiguration config;
+
+
     public Dictionary<int, State> _Q_states;
     public Dictionary<int, double[]> _Q_values;
-    public Agent(StrengthVector[] actions, double alpha, double gamma)
+    public Agent(StrengthVector[] actions)
     {
-        _alpha = alpha;
-        _gamma = gamma;
+
+        config = new ConfigurationBuilder()
+            .AddJsonFile(configfilePath, optional: true, reloadOnChange: true)
+            .Build();
+
+        _alpha = Convert.ToDouble(config["AlphaCoefficient"] ?? string.Empty);
+        _gamma = Convert.ToDouble(config["GammaCoefficient"] ?? string.Empty);
         _Q_states = [];
         _Q_values = [];
         _actions = actions;
+
+        _startRandom = Convert.ToDouble(config["StartRandomChance"] ?? string.Empty);
+        _stepRandomChange = Convert.ToInt32(config["StepRandomChanceChange"] ?? string.Empty);
+        _deltaRandom = Convert.ToDouble(config["DeltaRandomChance"] ?? string.Empty);
+        _currentRandom = _startRandom;
+        _stepCounter = 0;
     }
      
      public void Update(Dictionary<int, double[]> Q_target, State state, StrengthVector action, State new_state, int reward, bool terminated)
@@ -63,12 +84,23 @@ public class Agent
         _Q_values[hash_state][ind] += _alpha * TD;
     }
 
-    public StrengthVector Action(State state, double soft = 0.1)
+    public StrengthVector Action(State state)
     {
+        _stepCounter++;
+        if (_stepCounter == _stepRandomChange)
+        {
+            _stepCounter = 0;
+            _currentRandom -= _deltaRandom;
+        }
+        if (_currentRandom < 0)
+        {
+            _currentRandom = 0;
+        }
+        
         // Возвращает действие агента в зависимости от текущего состояния
 
         Random random = new Random();
-        if (random.NextDouble() < soft)
+        if (random.NextDouble() < _currentRandom)
         {
             int randomIndex = random.Next(_actions.Length);
             return _actions[randomIndex];
@@ -91,5 +123,14 @@ public class Agent
         return _actions[Array.IndexOf(_Q_values[hash_state], _Q_values[hash_state].Max())];
     }
 
-   
+
+    public void WriteDictionaryToFile(string filePath)
+    {
+        using StreamWriter writer = new(filePath);
+        foreach (var pair in _Q_values)
+        {
+            writer.Write($"{_Q_states[pair.Key].ToString()}: {string.Join(" ", pair.Value)}");
+            writer.WriteLine();
+        }
+    }
 }

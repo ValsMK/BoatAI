@@ -3,6 +3,7 @@ using LoadFlowMap;
 using Microsoft.Extensions.Configuration;
 using System.Diagnostics;
 using System.Drawing;
+using System.Xml.Schema;
 
 //созадим объект конфигурации
 string configfilePath = Path.Combine(AppContext.BaseDirectory, "appsettings.json");
@@ -52,9 +53,10 @@ if (outputFilePath != string.Empty)
 //Зададим начальную и конечную координаты
 flowMap.StartPoint = new Point(1400, 10);
 //flowMap.EndPoint = new Point(700, flowMap.LenX - 50);
-flowMap.EndPoint = new Point(1375, 40);
-Console.WriteLine($"StartPoint: {flowMap.GetFlow(flowMap.StartPoint)}");
-Console.WriteLine($"EndPoint: {flowMap.GetFlow(flowMap.EndPoint)}");
+flowMap.GetFlow(new Point(1300, 1600));
+flowMap.EndPoint = new Point(1300, 1600);
+//Console.WriteLine($"StartPoint: {flowMap.GetFlow(flowMap.StartPoint)}");
+//Console.WriteLine($"EndPoint: {flowMap.GetFlow(flowMap.EndPoint)}");
 
 Console.WriteLine("End read flow map");
 
@@ -69,13 +71,18 @@ var env = new Enviorment(flowMap);
 StrengthVector[] actions = [ new(5, 0), new(5, 45), new(5, 90), new(5, 135), new(5, 180), new(5, 225), new(5, 270), new(5, 315)];
 
 //созадим переменную агента
-var agent = new Agent(actions, 0.05, 1);
+var agent = new Agent(actions);
 
 var state = env.CoordsToNewState(flowMap.StartPoint);
 
-int count_steps = 0;
+int count_steps = 1;
 
-for (long i = 0; i < 100_000_00; i++)
+Int64 num_epochs = Convert.ToInt64(config["NumberOfEpochs"]);
+
+//Засекаем время на обучение
+Stopwatch stopwatchEducation = Stopwatch.StartNew();
+
+for (long i = 0; i < num_epochs; i++)
 {
     var action = agent.Action(state);
 
@@ -86,7 +93,9 @@ for (long i = 0; i < 100_000_00; i++)
 
     state = new_state.Item1;
 
-    if (count_steps % 10000 == 0)
+    //if (count_steps % 100_000_000 == 0)
+    //    Console.WriteLine($"{(double)count_steps / (double)1_000_000}%");
+    if (count_steps % 100_000_00 == 0)
         Console.WriteLine(count_steps);
     count_steps++;
 
@@ -96,33 +105,21 @@ for (long i = 0; i < 100_000_00; i++)
         state = env.CoordsToNewState(flowMap.StartPoint);
     }
 }
+stopwatchEducation.Stop();
 
 
-//var dict = model._Q.OrderBy(pair => (pair.Key.Item1, pair.Key.Item2));
-var dict_states = agent._Q_states;
-var dict_values = agent._Q_values;
-foreach (var pair in dict_states)
-{
-    //Console.WriteLine($"{pair.Key.Item1}, {pair.Key.Item2}, {Format2DArray(pair.Key.Item3)}  :  {string.Join(", ", pair.Value)}");
-    Console.WriteLine($"{pair.Key}  :  {string.Join(", ", pair.Value)}  :  {string.Join(" ; ", dict_values[pair.Key])}");
-}
-
-//static string Format2DArray((int, int)[,] array)
+//var dict_states = agent._Q_states;
+//var dict_values = agent._Q_values;
+//foreach (var pair in dict_states)
 //{
-//    List<string> elements = new List<string>();
-//    int rows = array.GetLength(0);
-//    int cols = array.GetLength(1);
-
-//    for (int i = 0; i < rows; i++)
-//    {
-//        for (int j = 0; j < cols; j++)
-//        {
-//            elements.Add($"({array[i, j].Item1}, {array[i, j].Item2})");
-//        }
-//    }
-
-//    return $"[{string.Join(", ", elements)}]";
+//    Console.WriteLine($"{pair.Key}  :  {string.Join(", ", pair.Value)}  :  {string.Join(" ; ", dict_values[pair.Key])}");
 //}
+
+Console.WriteLine();
+Console.WriteLine();
+Console.WriteLine();
+
+Console.WriteLine($"Education Time: {stopwatchEducation.Elapsed.Minutes} minutes.");
 
 Console.WriteLine();
 Console.WriteLine();
@@ -131,15 +128,31 @@ Console.WriteLine();
 
 env = new Enviorment(flowMap);
 state = env.CoordsToNewState(flowMap.StartPoint);
-var action1 = agent.Action(state, 0);
+var action1 = agent.Action(state);
 var new_state1 = env.Step(action1);
 state = new_state1.Item1;
 int count = 1;
 while (!new_state1.Item3 && !new_state1.Item4)
 {
     Console.WriteLine($"{new_state1.Item1.DistanceToEndPosition}  :  {action1}");
-    action1 = agent.Action(new_state1.Item1, 0);
+    action1 = agent.Action(new_state1.Item1);
     new_state1 = env.Step(action1);
     count += 1;
 }
 Console.WriteLine(count);
+
+
+
+
+// Запись Q-массива в файл
+var outputQArrayPath = config["OutputQArrayPath"] ?? string.Empty;
+outputQArrayPath = Path.Combine(workingDir, outputQArrayPath);
+if (outputQArrayPath != string.Empty)
+{
+    Console.WriteLine();
+    Console.WriteLine();
+    Console.WriteLine();
+    Console.WriteLine("Began writing Q-Dictionary to file");
+    agent.WriteDictionaryToFile(outputQArrayPath);
+    Console.WriteLine("Ended writing Q-Dictionary to file");
+}

@@ -17,7 +17,7 @@ public class Enviorment
 
     private Point _endPosition;
 
-    private readonly int _obstacleLen = 5;
+    private readonly int _obstacleLen = 3;
 
 
     // Создание экземпляра класса; принимает на вход массив течений и начальное положение, обнуляет кол-во шагов
@@ -184,7 +184,7 @@ public class Enviorment
                 }
                 else
                 {
-                    if (_flowMap.GetFlow(coords.X + x, coords.Y + y) == new StrengthVector(-1, -1))
+                    if (_flowMap.GetFlow(coords.X + x, coords.Y + y).Strength == new StrengthVector(-1, -1).Strength && _flowMap.GetFlow(coords.X + x, coords.Y + y).Angle == new StrengthVector(-1, -1).Angle)
                         around.SetValue(new Point(x + halfLength, y + halfLength), ObstaclesEnum.Obstacle);
                 }
             }
