@@ -84,7 +84,7 @@ Stopwatch stopwatchEducation = Stopwatch.StartNew();
 //                           new (490, 490), new (250, 250), new (490, 490), new (10, 10), new (490, 490), new (10, 490), new (490, 490), new (490, 10), 
 //                           new (490, 10), new (10, 490), new (490, 10), new (10, 10), new (490, 10), new (250, 250), new (490, 10), new (490, 490), 
 //                           new (250, 250), new (10, 10), new (250, 250), new (490, 490), new (250, 250), new (10, 490), new (250, 250), new (490, 10), };
-Point[] coordsVariants = { new(1, 60), new(98, 40) };
+Point[] coordsVariants = { new(2, 2), new(98, 2) };
 
 for (int variant =  0; variant < 1; variant++)
 {
