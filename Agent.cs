@@ -13,7 +13,7 @@ public class Agent
     private readonly double _deltaRandom;
     private readonly int _stepRandomChange;
     private int _stepCounter;
-    private double _currentRandom;
+    public double _currentRandom;
 
     private readonly string configfilePath = Path.Combine(AppContext.BaseDirectory, "appsettings.json");
     private IConfiguration config;
@@ -21,6 +21,9 @@ public class Agent
 
     public Dictionary<int, State> _Q_states;
     public Dictionary<int, double[]> _Q_values;
+
+    // Принцип оптимизма при неопределённости
+    private readonly double optimism = 1.0;
     public Agent(StrengthVector[] actions)
     {
 
@@ -39,6 +42,7 @@ public class Agent
         _deltaRandom = Convert.ToDouble(config["DeltaRandomChance"] ?? string.Empty);
         _currentRandom = _startRandom;
         _stepCounter = 0;
+
     }
      
      public void Update(Dictionary<int, double[]> Q_target, State state, StrengthVector action, State new_state, int reward, bool terminated)
@@ -49,7 +53,7 @@ public class Agent
         {
             double[] t = new double[_actions.Length];
             for (int i = 0; i < t.Length; i++)
-                t[i] = 0;
+                t[i] = optimism;
 
             _Q_states.Add(hash_state, state);
             _Q_values.Add(hash_state, t);
@@ -60,7 +64,7 @@ public class Agent
         {
             double[] t = new double[_actions.Length];
             for (int i = 0; i < t.Length; i++)
-                t[i] = 0;
+                t[i] = optimism;
 
             _Q_states.Add(hash_new_state, new_state);
             _Q_values.Add(hash_new_state, t);
@@ -112,7 +116,7 @@ public class Agent
         {
             double[] t = new double[_actions.Length];
             for (int i = 0; i < t.Length; i++)
-                t[i] = 0;
+                t[i] = optimism;
 
             _Q_states.Add(hash_state, state);
             _Q_values.Add(hash_state, t);
@@ -129,7 +133,7 @@ public class Agent
         using StreamWriter writer = new(filePath);
         foreach (var pair in _Q_values)
         {
-            writer.Write($"{_Q_states[pair.Key].ToString()}: {string.Join(" ", pair.Value)}");
+            writer.Write($"{pair.Key}: {string.Join(" ", pair.Value)}");
             writer.WriteLine();
         }
     }

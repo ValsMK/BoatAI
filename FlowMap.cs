@@ -46,6 +46,7 @@ public class FlowMap
 
     private void SetEndPoint(Point point)
     {
+        _flows[_endPoint.X, _endPoint.Y] = new StrengthVector(1, 90);
         _endPoint = point;
         _flows[point.X, point.Y] = new StrengthVector(10, 10);
     }

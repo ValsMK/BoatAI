@@ -36,8 +36,8 @@ public class Enviorment
     // Функция "шага"; принимает на вход текущее положение и действие; возвращает новое состояние и награду
     public (State, int, bool, bool) Step( StrengthVector action)
     {
-        // Проверяем, что шагов не больше 100; если больше, "обрезаем" эпизод
-        bool truncated = (_step_counter >= 700);
+        // Проверяем, что шагов не больше n; если больше, "обрезаем" эпизод
+        bool truncated = (_step_counter >= 2000);
         // Прибавляем 1 к счётчику шагов
         _step_counter++;
 

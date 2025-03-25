@@ -27,7 +27,7 @@ public static class VectorHelper
 
         // Преобразование обратно в полярные координаты
         int strengthSum = (int)Math.Round(Math.Sqrt(xSum * xSum + ySum * ySum));
-        int angleSum = (int)Math.Round( Math.Atan2(ySum, xSum) * 180.0 / Math.PI );;
+        int angleSum = (int)Math.Round( Math.Atan2(Math.Round(ySum), Math.Round(xSum)) * 180.0 / Math.PI );
 
         return new StrengthVector(strengthSum, angleSum);
     }
